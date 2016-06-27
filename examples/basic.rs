@@ -4,10 +4,10 @@ extern crate log;
 extern crate s_structured_log;
 extern crate serde_json;
 
-use s_structured_log::LoggerOutput;
+use s_structured_log::{LoggerOutput, q};
 
 fn main() {
-    s_structured_log::init(LoggerOutput::Stdout, log::LogLevelFilter::Trace);
+    s_structured_log::init(LoggerOutput::Stdout, log::LogLevelFilter::Info);
 
     s_trace!(json_object! {
         "trace_key1" => 1,
@@ -34,5 +34,11 @@ fn main() {
            json_object! {
         "trace_key1" => 1,
         "trace_key2" => "value2"
+    });
+    error!("{}",
+           json_format! {
+        "error_key1" => 1,
+        "error_key2" => q("value2"),
+        "error_key3" => json_format![q("value3"),4]
     });
 }

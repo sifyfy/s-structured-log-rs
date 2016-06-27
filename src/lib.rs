@@ -5,7 +5,7 @@ extern crate serde_json;
 
 use serde::{Serialize, Serializer};
 use serde_json::to_string;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::io::{Write, stderr, stdout};
 
 #[macro_export]
@@ -50,11 +50,8 @@ macro_rules! json_format {
     }
 }
 
-#[macro_export]
-macro_rules! q {
-    ( $value:expr ) => {
-        format!("\"{}\"", $value)
-    }
+pub fn q<T: Display + ?Sized>(x: &T) -> String {
+    format!("\"{}\"", escape_str(&x.to_string()))
 }
 
 pub trait StructuredLog {
@@ -89,8 +86,8 @@ impl<'a, T: Serialize + Debug> StructuredLog for SLogJson<'a, T> {
     fn slog(&self) -> String {
         to_string(self).unwrap_or_else(|err| {
             json_format! {
-                "format_error" => q!(escape_str(&format!("{:?}", err))),
-                "value" => q!(escape_str(&format!("{:?}", self)))
+                "format_error" => q(&format!("{:?}", err)),
+                "value" => q(&format!("{:?}", self))
             }
         })
     }
@@ -220,19 +217,19 @@ impl log::Log for JsonLogger {
         }
 
         let json = json_format! {
-            "level" => q!(record.level()),
+            "level" => q(&record.level()),
             "meta" => json_format! {
-                "target" => q!(record.target()),
+                "target" => q(&record.target()),
                 "location" => json_format! {
-                    "module_path" => q!(record.location().module_path()),
-                    "file" => q!(record.location().file()),
+                    "module_path" => q(&record.location().module_path()),
+                    "file" => q(&record.location().file()),
                     "line" => record.location().line()
                 }
             },
             "value" => if record.target().starts_with("json:") {
                 format!("{}", record.args())
             } else {
-                q!(escape_str(&record.args().to_string()))
+                q(&record.args().to_string())
             }
         };
 
@@ -261,6 +258,8 @@ pub mod doc;
 
 #[cfg(test)]
 mod tests {
+    use q;
+
     #[test]
     fn simple_logger() {}
 
@@ -287,11 +286,11 @@ mod tests {
     #[test]
     fn json_format() {
         let obj = json_format! {
-            "key1" => q!("value1"),
+            "key1" => q("value1"),
             "key2" => 1
         };
 
-        let array = json_format![q!("value1"), 1];
+        let array = json_format![q("value1"), 1];
 
         assert_eq!(obj, r#"{"key1":"value1","key2":1}"#);
         assert_eq!(array, r#"["value1",1]"#);
