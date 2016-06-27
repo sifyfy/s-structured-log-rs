@@ -131,7 +131,7 @@ macro_rules! s_error {
     };
     ($value:expr) => {
         {
-            s_error!(target: module_path!(), $value);
+            s_error!(target: &format!("json:{}", module_path!()), $value);
         }
     };
 }
@@ -146,7 +146,7 @@ macro_rules! s_warn {
     };
     ($value:expr) => {
         {
-            s_warn!(target: module_path!(), $value);
+            s_warn!(target: &format!("json:{}", module_path!()), $value);
         }
     };
 }
@@ -161,7 +161,7 @@ macro_rules! s_info {
     };
     ($value:expr) => {
         {
-            s_info!(target: module_path!(), $value);
+            s_info!(target: &format!("json:{}", module_path!()), $value);
         }
     };
 }
@@ -176,7 +176,7 @@ macro_rules! s_debug {
     };
     ($value:expr) => {
         {
-            s_debug!(target: module_path!(), $value);
+            s_debug!(target: &format!("json:{}", module_path!()), $value);
         }
     };
 }
@@ -191,9 +191,54 @@ macro_rules! s_trace {
     };
     ($value:expr) => {
         {
-            s_trace!(target: module_path!(), $value);
+            s_trace!(target: &format!("json:{}", module_path!()), $value);
         }
     };
+}
+
+fn escape_str(x: &str) -> String {
+    let mut v = Vec::new();
+    let mut l = 0;
+    let bytes = x.as_bytes();
+    for (i, b) in bytes.iter().enumerate() {
+        let escaped = match *b {
+            b'\x00' => r"\u0000",
+            b'\x01' => r"\u0001",
+            b'\x02' => r"\u0002",
+            b'\x03' => r"\u0003",
+            b'\x04' => r"\u0004",
+            b'\x05' => r"\u0005",
+            b'\x06' => r"\u0006",
+            b'\x07' => r"\u0007",
+            b'\x08' => r"\b",
+            b'\x09' => r"\t",
+            b'\x10' => r"\n",
+            b'\x11' => r"\u0011",
+            b'\x12' => r"\f",
+            b'\x13' => r"\r",
+            b'\x14' => r"\u0014",
+            b'\x15' => r"\u0015",
+            b'\x16' => r"\u0016",
+            b'\x17' => r"\u0017",
+            b'\x18' => r"\u0018",
+            b'\x19' => r"\u0019",
+            b'\\' => r"\\",
+            b'"' => r#"\""#,
+            _ => {
+                continue;
+            }
+        };
+
+        if l < i {
+            v.extend_from_slice(&bytes[l..i]);
+        }
+
+        v.extend_from_slice(escaped.as_bytes());
+
+        l = i + 1;
+    }
+
+    String::from_utf8(v).unwrap()
 }
 
 pub enum LoggerOutput {
@@ -201,12 +246,12 @@ pub enum LoggerOutput {
     Stderr,
 }
 
-struct SimpleLogger {
+struct JsonLogger {
     filter: log::LogLevelFilter,
     output: LoggerOutput,
 }
 
-impl log::Log for SimpleLogger {
+impl log::Log for JsonLogger {
     fn enabled(&self, metadata: &log::LogMetadata) -> bool {
         metadata.level() <= self.filter
     }
@@ -216,15 +261,35 @@ impl log::Log for SimpleLogger {
             return;
         }
 
-        match self.output {
-            LoggerOutput::Stderr => writeln!(stderr(), "{}", record.args()).unwrap(),
-            LoggerOutput::Stdout => writeln!(stdout(), "{}", record.args()).unwrap(),
-        }
+        let location = format!(r#"{{"module_path":"{}","file":"{}","line":{}}}"#,
+                               record.location().module_path(),
+                               record.location().file(),
+                               record.location().line());
+
+        let meta = format!(r#"{{"target":"{}","location":{}}}"#,
+                           record.target(),
+                           location);
+
+        let value = if record.target().starts_with("json:") {
+            format!("{}", record.args())
+        } else {
+            format!(r#""{}""#, escape_str(&record.args().to_string()))
+        };
+
+        let json = format!(r#"{{"level":"{}","meta":{},"value":{}}}"#,
+                           record.level().to_string(),
+                           meta,
+                           value);
+
+        let _ = match self.output {
+            LoggerOutput::Stderr => writeln!(stderr(), "{}", json),
+            LoggerOutput::Stdout => writeln!(stdout(), "{}", json),
+        };
     }
 }
 
 pub fn init(output: LoggerOutput, log_level: log::LogLevelFilter) {
-    let logger = SimpleLogger {
+    let logger = JsonLogger {
         filter: log_level,
         output: output,
     };
@@ -243,4 +308,11 @@ pub mod doc;
 mod tests {
     #[test]
     fn simple_logger() {}
+
+    #[test]
+    fn escape_str() {
+        let x = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\\\"";
+        let expected = r#"\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u0011\f\r\u0014\u0015\u0016\u0017\u0018\u0019\\\""#.to_owned();
+        assert_eq!(::escape_str(x), expected);
+    }
 }

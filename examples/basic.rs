@@ -29,4 +29,10 @@ fn main() {
         "error_key1" => 1,
         "error_key2" => "value2"
     });
+
+    trace!("{:?}",
+           json_object! {
+        "trace_key1" => 1,
+        "trace_key2" => "value2"
+    });
 }
