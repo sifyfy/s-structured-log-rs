@@ -196,14 +196,48 @@ pub fn escape_str(x: &str) -> String {
     String::from_utf8(v).unwrap()
 }
 
+/// This enum indicates where the JsonLogger output to.
 pub enum LoggerOutput {
     Stdout,
     Stderr,
 }
 
-struct JsonLogger {
+/// This logger is a implementation for `log::Log` trait.
+pub struct JsonLogger {
     filter: log::LogLevelFilter,
     output: LoggerOutput,
+}
+
+impl JsonLogger {
+    /// ```
+    /// #[macro_use]
+    /// extern crate log;
+    /// #[macro_use]
+    /// extern crate s_structured_log;
+    /// extern crate serde_json;
+    ///
+    /// use log::LogLevelFilter;
+    /// use s_structured_log::{JsonLogger, LoggerOutput};
+    ///
+    /// fn main() {
+    ///     JsonLogger::init(LoggerOutput::Stderr, LogLevelFilter::Info);
+    ///
+    ///     s_info!(json_object! {
+    ///         "key" => "value"
+    ///     });
+    /// }
+    /// ```
+    pub fn init(output: LoggerOutput, filter: log::LogLevelFilter) {
+        let logger = JsonLogger {
+            filter: filter,
+            output: output,
+        };
+        log::set_logger(|max_log_level| {
+                max_log_level.set(logger.filter);
+                Box::new(logger)
+            })
+            .unwrap();
+    }
 }
 
 impl log::Log for JsonLogger {
@@ -238,19 +272,6 @@ impl log::Log for JsonLogger {
             LoggerOutput::Stdout => writeln!(stdout(), "{}", json),
         };
     }
-}
-
-pub fn init(output: LoggerOutput, log_level: log::LogLevelFilter) {
-    let logger = JsonLogger {
-        filter: log_level,
-        output: output,
-    };
-
-    log::set_logger(|max_log_level| {
-            max_log_level.set(logger.filter);
-            Box::new(logger)
-        })
-        .unwrap();
 }
 
 #[cfg(feature = "documentation")]
