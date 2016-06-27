@@ -1,6 +1,7 @@
 target
 Cargo.lock
-*.bk.DS_Store
+*.bk
+.DS_Store
 .directory
 Thumbs.db
 core
