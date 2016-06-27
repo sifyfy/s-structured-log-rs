@@ -5,6 +5,7 @@ extern crate serde_json;
 
 use serde::{Serialize, Serializer};
 use serde_json::to_string;
+use std::fmt::Debug;
 use std::io::{Write, stderr, stdout};
 
 #[macro_export]
@@ -56,64 +57,15 @@ macro_rules! q {
     }
 }
 
-
-#[derive(Debug)]
-pub struct SLogMetadata<'a> {
-    pub target: &'a str,
-    pub level: log::LogLevel,
-}
-
-#[derive(Debug)]
-pub struct SLogLocation<'a> {
-    pub module_path: &'a str,
-    pub file: &'a str,
-    pub line: u32,
-}
-
-#[derive(Debug)]
-pub struct SLogInfo<'a> {
-    pub metadata: SLogMetadata<'a>,
-    pub location: SLogLocation<'a>,
-}
-
-impl<'a> SLogInfo<'a> {
-    pub fn metadata(&self) -> &SLogMetadata {
-        &self.metadata
-    }
-
-    pub fn location(&self) -> &SLogLocation {
-        &self.location
-    }
-}
-
 pub trait StructuredLog {
-    fn slog(&self, info: &SLogInfo) -> String;
+    fn slog(&self) -> String;
 }
 
 #[inline]
-pub fn serialize<T>(value: &T, info: &SLogInfo) -> String
+pub fn serialize<T>(value: &T) -> String
     where T: StructuredLog
 {
-    value.slog(info)
-}
-
-#[macro_export]
-macro_rules! serialize {
-    (target: $target:expr, level: $level:expr, $value:expr) => {
-        {
-            $crate::serialize(&$value, &$crate::SLogInfo {
-                metadata: $crate::SLogMetadata {
-                    target: $target,
-                    level: $level
-                },
-                location: $crate::SLogLocation {
-                    module_path: module_path!(),
-                    file: file!(),
-                    line: line!()
-                }
-            })
-        }
-    }
+    value.slog()
 }
 
 #[derive(Debug)]
@@ -133,26 +85,12 @@ impl<'a, T: Serialize> Serialize for SLogJson<'a, T> {
     }
 }
 
-impl<'a, T: Serialize> StructuredLog for SLogJson<'a, T> {
-    fn slog(&self, info: &SLogInfo) -> String {
-        let obj = json_object! {
-            "target" => info.metadata.target,
-            "level" => info.metadata.level.to_string(),
-            "location" => json_object! {
-                "module_path" => info.location.module_path,
-                "file" => info.location.file,
-                "line" => info.location.line
-            },
-            "value" => self
-        };
-        to_string(&obj).unwrap_or_else(|err| {
-            writeln!(stderr(), "{}, {:?}", err, obj).unwrap();
-
-            let msg = "Serializing error occured in s_structured_log in serde::to_string. \
-                       Details was written out to STDERR.";
+impl<'a, T: Serialize + Debug> StructuredLog for SLogJson<'a, T> {
+    fn slog(&self) -> String {
+        to_string(self).unwrap_or_else(|err| {
             json_format! {
-                "level" => q!(log::LogLevel::Error),
-                "value" => q!(msg)
+                "format_error" => q!(escape_str(&format!("{:?}", err))),
+                "value" => q!(escape_str(&format!("{:?}", self)))
             }
         })
     }
@@ -162,13 +100,12 @@ impl<'a, T: Serialize> StructuredLog for SLogJson<'a, T> {
 macro_rules! s_error {
     (target: $target:expr, $value:expr) => {
         {
-            use log;
-            trace!(target: $target, "{}", serialize!(target: $target, level: log::LogLevel::Error, $crate::SLogJson::new(&$value)));
+            trace!(target: &format!("json:{}", $target), "{}", $crate::serialize(&$crate::SLogJson::new(&$value)));
         }
     };
     ($value:expr) => {
         {
-            s_error!(target: &format!("json:{}", module_path!()), $value);
+            s_error!(target: module_path!(), $value);
         }
     };
 }
@@ -177,13 +114,12 @@ macro_rules! s_error {
 macro_rules! s_warn {
     (target: $target:expr, $value:expr) => {
         {
-            use log;
-            trace!(target: $target, "{}", serialize!(target: $target, level: log::LogLevel::Warn, $crate::SLogJson::new(&$value)));
+            trace!(target: &format!("json:{}", $target), "{}", $crate::serialize(&$crate::SLogJson::new(&$value)));
         }
     };
     ($value:expr) => {
         {
-            s_warn!(target: &format!("json:{}", module_path!()), $value);
+            s_warn!(target: module_path!(), $value);
         }
     };
 }
@@ -192,13 +128,12 @@ macro_rules! s_warn {
 macro_rules! s_info {
     (target: $target:expr, $value:expr) => {
         {
-            use log;
-            trace!(target: $target, "{}", serialize!(target: $target, level: log::LogLevel::Info, $crate::SLogJson::new(&$value)));
+            trace!(target: &format!("json:{}", $target), "{}", $crate::serialize(&$crate::SLogJson::new(&$value)));
         }
     };
     ($value:expr) => {
         {
-            s_info!(target: &format!("json:{}", module_path!()), $value);
+            s_info!(target: module_path!(), $value);
         }
     };
 }
@@ -207,13 +142,12 @@ macro_rules! s_info {
 macro_rules! s_debug {
     (target: $target:expr, $value:expr) => {
         {
-            use log;
-            trace!(target: $target, "{}", serialize!(target: $target, level: log::LogLevel::Debug, $crate::SLogJson::new(&$value)));
+            trace!(target: &format!("json:{}", $target), "{}", $crate::serialize(&$crate::SLogJson::new(&$value)));
         }
     };
     ($value:expr) => {
         {
-            s_debug!(target: &format!("json:{}", module_path!()), $value);
+            s_debug!(target: module_path!(), $value);
         }
     };
 }
@@ -222,18 +156,17 @@ macro_rules! s_debug {
 macro_rules! s_trace {
     (target: $target:expr, $value:expr) => {
         {
-            use log;
-            trace!(target: $target, "{}", serialize!(target: $target, level: log::LogLevel::Trace, $crate::SLogJson::new(&$value)));
+            trace!(target: &format!("json:{}", $target), "{}", $crate::serialize(&$crate::SLogJson::new(&$value)));
         }
     };
     ($value:expr) => {
         {
-            s_trace!(target: &format!("json:{}", module_path!()), $value);
+            s_trace!(target: module_path!(), $value);
         }
     };
 }
 
-fn escape_str(x: &str) -> String {
+pub fn escape_str(x: &str) -> String {
     let mut v = Vec::new();
     let mut l = 0;
     let bytes = x.as_bytes();
