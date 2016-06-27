@@ -172,28 +172,14 @@ pub fn escape_str(x: &str) -> String {
     let bytes = x.as_bytes();
     for (i, b) in bytes.iter().enumerate() {
         let escaped = match *b {
-            b'\x00' => r"\u0000",
-            b'\x01' => r"\u0001",
-            b'\x02' => r"\u0002",
-            b'\x03' => r"\u0003",
-            b'\x04' => r"\u0004",
-            b'\x05' => r"\u0005",
-            b'\x06' => r"\u0006",
-            b'\x07' => r"\u0007",
-            b'\x08' => r"\b",
-            b'\x09' => r"\t",
-            b'\x10' => r"\n",
-            b'\x11' => r"\u0011",
-            b'\x12' => r"\f",
-            b'\x13' => r"\r",
-            b'\x14' => r"\u0014",
-            b'\x15' => r"\u0015",
-            b'\x16' => r"\u0016",
-            b'\x17' => r"\u0017",
-            b'\x18' => r"\u0018",
-            b'\x19' => r"\u0019",
-            b'\\' => r"\\",
-            b'"' => r#"\""#,
+            b'\x08' => r"\b".to_owned(),
+            b'\x09' => r"\t".to_owned(),
+            b'\x0a' => r"\n".to_owned(),
+            b'\x0c' => r"\f".to_owned(),
+            b'\x0d' => r"\r".to_owned(),
+            b'\\' => r"\\".to_owned(),
+            b'"' => r#"\""#.to_owned(),
+            a if a < b'\x20' => format!(r"\u{:04x}", a),
             _ => {
                 continue;
             }
@@ -207,6 +193,8 @@ pub fn escape_str(x: &str) -> String {
 
         l = i + 1;
     }
+
+    v.extend_from_slice(&bytes[l..]);
 
     String::from_utf8(v).unwrap()
 }
@@ -277,10 +265,23 @@ mod tests {
     fn simple_logger() {}
 
     #[test]
-    fn escape_str() {
-        let x = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\\\"";
-        let expected = r#"\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u0011\f\r\u0014\u0015\u0016\u0017\u0018\u0019\\\""#.to_owned();
+    fn only_escape_chars() {
+        let x = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\\\"";
+        let expected = r#"\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\\\""#.to_owned();
         assert_eq!(::escape_str(x), expected);
+    }
+
+    #[test]
+    fn no_escape_chars() {
+        let x = "abcdefghijklmn猫🐈";
+        assert_eq!(::escape_str(x), x.to_owned());
+    }
+
+    #[test]
+    fn random_escape_chars() {
+        let x = "ab\ncdef\x02\x03猫\"bbb🐈";
+        let expected = r#"ab\ncdef\u0002\u0003猫\"bbb🐈"#;
+        assert_eq!(::escape_str(x), expected.to_owned());
     }
 
     #[test]
