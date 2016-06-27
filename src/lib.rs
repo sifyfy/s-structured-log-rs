@@ -21,6 +21,42 @@ macro_rules! json_object {
     }
 }
 
+#[macro_export]
+macro_rules! json_format {
+    ( $( $key:expr => $value:expr ),* ) => {
+        {
+            let mut s = String::with_capacity(128);
+            s.push('{');
+            $(
+                s.push_str(&format!(r#""{}":{},"#, $key, $value));
+            )*
+            let _ = s.pop();
+            s.push('}');
+            s
+        }
+    };
+    ( $( $value:expr ),* ) => {
+        {
+            let mut s = String::with_capacity(128);
+            s.push('[');
+            $(
+                s.push_str(&format!("{},", $value));
+            )*
+            let _ = s.pop();
+            s.push(']');
+            s
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! q {
+    ( $value:expr ) => {
+        format!("\"{}\"", $value)
+    }
+}
+
+
 #[derive(Debug)]
 pub struct SLogMetadata<'a> {
     pub target: &'a str,
@@ -114,9 +150,10 @@ impl<'a, T: Serialize> StructuredLog for SLogJson<'a, T> {
 
             let msg = "Serializing error occured in s_structured_log in serde::to_string. \
                        Details was written out to STDERR.";
-            format!("{{ \"level\": \"{}\", \"value\": \"{}\" }}",
-                    log::LogLevel::Error,
-                    msg)
+            json_format! {
+                "level" => q!(log::LogLevel::Error),
+                "value" => q!(msg)
+            }
         })
     }
 }
@@ -261,25 +298,22 @@ impl log::Log for JsonLogger {
             return;
         }
 
-        let location = format!(r#"{{"module_path":"{}","file":"{}","line":{}}}"#,
-                               record.location().module_path(),
-                               record.location().file(),
-                               record.location().line());
-
-        let meta = format!(r#"{{"target":"{}","location":{}}}"#,
-                           record.target(),
-                           location);
-
-        let value = if record.target().starts_with("json:") {
-            format!("{}", record.args())
-        } else {
-            format!(r#""{}""#, escape_str(&record.args().to_string()))
+        let json = json_format! {
+            "level" => q!(record.level()),
+            "meta" => json_format! {
+                "target" => q!(record.target()),
+                "location" => json_format! {
+                    "module_path" => q!(record.location().module_path()),
+                    "file" => q!(record.location().file()),
+                    "line" => record.location().line()
+                }
+            },
+            "value" => if record.target().starts_with("json:") {
+                format!("{}", record.args())
+            } else {
+                q!(escape_str(&record.args().to_string()))
+            }
         };
-
-        let json = format!(r#"{{"level":"{}","meta":{},"value":{}}}"#,
-                           record.level().to_string(),
-                           meta,
-                           value);
 
         let _ = match self.output {
             LoggerOutput::Stderr => writeln!(stderr(), "{}", json),
@@ -314,5 +348,18 @@ mod tests {
         let x = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\\\"";
         let expected = r#"\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u0011\f\r\u0014\u0015\u0016\u0017\u0018\u0019\\\""#.to_owned();
         assert_eq!(::escape_str(x), expected);
+    }
+
+    #[test]
+    fn json_format() {
+        let obj = json_format! {
+            "key1" => q!("value1"),
+            "key2" => 1
+        };
+
+        let array = json_format![q!("value1"), 1];
+
+        assert_eq!(obj, r#"{"key1":"value1","key2":1}"#);
+        assert_eq!(array, r#"["value1",1]"#);
     }
 }
