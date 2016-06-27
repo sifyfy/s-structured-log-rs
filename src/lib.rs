@@ -114,7 +114,9 @@ impl<'a, T: Serialize> StructuredLog for SLogJson<'a, T> {
 
             let msg = "Serializing error occured in s_structured_log in serde::to_string. \
                        Details was written out to STDERR.";
-            format!("{{ \"level\": \"{}\", \"value\": \"{}\" }}", log::LogLevel::Error, msg)
+            format!("{{ \"level\": \"{}\", \"value\": \"{}\" }}",
+                    log::LogLevel::Error,
+                    msg)
         })
     }
 }
