@@ -5,6 +5,10 @@ authors = ["siphilia <siphilia.rn@gmail.com>"]
 license = "MIT"
 description = "Logging with structured data like json."
 
+[features]
+default = []
+documentation = []
+
 [dependencies]
 log = "0.3.6"
 serde = "0.7.11"

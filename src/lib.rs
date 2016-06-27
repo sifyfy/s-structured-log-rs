@@ -50,6 +50,14 @@ macro_rules! json_format {
     }
 }
 
+/// Make a quoted string for JSON.
+///
+/// ```
+/// use s_structured_log::q;
+///
+/// let quoted = q("abc");
+/// assert_eq!(quoted, "\"abc\"");
+/// ```
 pub fn q<T: Display + ?Sized>(x: &T) -> String {
     format!("\"{}\"", escape_str(&x.to_string()))
 }
@@ -163,6 +171,15 @@ macro_rules! s_trace {
     };
 }
 
+/// Escape characters for JSON.
+///
+/// ```
+/// use s_structured_log::escape_str;
+///
+/// let x = "ab\ncdef\x02\x03猫\"bbb🐈";
+/// let expected = r#"ab\ncdef\u0002\u0003猫\"bbb🐈"#;
+/// assert_eq!(escape_str(x), expected.to_owned());
+/// ```
 pub fn escape_str(x: &str) -> String {
     let mut v = Vec::new();
     let mut l = 0;
