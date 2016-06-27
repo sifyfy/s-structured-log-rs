@@ -11,9 +11,8 @@ use std::io::{Write, stderr, stdout};
 macro_rules! json_object {
     ( $( $key:expr => $value:expr ),* ) => {
         {
-            use serde_json::{Value, to_value};
-            use std::collections::BTreeMap;
-            let mut m: BTreeMap<String, Value> = BTreeMap::new();
+            use serde_json::{Value, to_value, Map};
+            let mut m: Map<String, Value> = Map::new();
             $(
                 m.insert($key.to_owned(), to_value(&$value));
             )*
