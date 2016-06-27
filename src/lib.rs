@@ -100,7 +100,7 @@ impl<'a, T: Serialize + Debug> StructuredLog for SLogJson<'a, T> {
 macro_rules! s_error {
     (target: $target:expr, $value:expr) => {
         {
-            trace!(target: &format!("json:{}", $target), "{}", $crate::serialize(&$crate::SLogJson::new(&$value)));
+            error!(target: &format!("json:{}", $target), "{}", $crate::serialize(&$crate::SLogJson::new(&$value)));
         }
     };
     ($value:expr) => {
@@ -114,7 +114,7 @@ macro_rules! s_error {
 macro_rules! s_warn {
     (target: $target:expr, $value:expr) => {
         {
-            trace!(target: &format!("json:{}", $target), "{}", $crate::serialize(&$crate::SLogJson::new(&$value)));
+            warn!(target: &format!("json:{}", $target), "{}", $crate::serialize(&$crate::SLogJson::new(&$value)));
         }
     };
     ($value:expr) => {
@@ -128,7 +128,7 @@ macro_rules! s_warn {
 macro_rules! s_info {
     (target: $target:expr, $value:expr) => {
         {
-            trace!(target: &format!("json:{}", $target), "{}", $crate::serialize(&$crate::SLogJson::new(&$value)));
+            info!(target: &format!("json:{}", $target), "{}", $crate::serialize(&$crate::SLogJson::new(&$value)));
         }
     };
     ($value:expr) => {
@@ -142,7 +142,7 @@ macro_rules! s_info {
 macro_rules! s_debug {
     (target: $target:expr, $value:expr) => {
         {
-            trace!(target: &format!("json:{}", $target), "{}", $crate::serialize(&$crate::SLogJson::new(&$value)));
+            debug!(target: &format!("json:{}", $target), "{}", $crate::serialize(&$crate::SLogJson::new(&$value)));
         }
     };
     ($value:expr) => {
