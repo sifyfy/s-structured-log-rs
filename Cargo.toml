@@ -1,0 +1,11 @@
+[package]
+name = "s-structured-log"
+version = "0.0.0"
+authors = ["siphilia <siphilia.rn@gmail.com>"]
+license = "MIT"
+description = "Logging with structured data like json."
+
+[dependencies]
+log = "0.3.6"
+serde = "0.7.11"
+serde_json = "0.7.3"
