@@ -7,7 +7,6 @@ description = "Logging with structured data like json."
 
 [features]
 default = []
-documentation = []
 
 [dependencies]
 log = "0.3.6"

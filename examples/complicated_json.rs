@@ -15,7 +15,7 @@ fn main() {
             "on_the_table" => json_object! {
                 "Apple" => 1,
                 "Orange" => "two",
-                "Grape" => 1.0
+                "Grape" => 1.2
             },
             "in_the_basket" => ["Banana", "Strawberry"]
         },
@@ -41,7 +41,7 @@ fn main() {
             "on_the_table" => json_format! {
                 "Apple" => 1,
                 "Orange" => q("two"),
-                "Grape" => 1.0
+                "Grape" => 1.2
             },
             "in_the_basket" => json_format![q("Banana"), q("Strawberry")]
         },
@@ -66,7 +66,7 @@ fn main() {
             "on_the_table" => json_format! {
                 "Apple" => 1,
                 "Orange" => 2,
-                "Grape" => 1
+                "Grape" => 1.2
             },
             "in_the_basket" => json_format![q("Banana"), q("Strawberry")]
         },

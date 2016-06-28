@@ -1,3 +1,178 @@
+//! # Basic usage
+//!
+//! Cargo.toml:
+//!
+//! ```toml
+//! ...
+//!
+//! [dependencies]
+//! log = "*"
+//! serde = "*"
+//! serde_json = "*"
+//! s-structured-log = "*"
+//! ```
+//!
+//! main.rs:
+//!
+//! ```
+//! #[macro_use]
+//! extern crate log;
+//! #[macro_use]
+//! extern crate s_structured_log;
+//! extern crate serde_json;
+//!
+//! use s_structured_log::{JsonLogger, LoggerOutput, q};
+//!
+//! fn main() {
+//!     JsonLogger::init(LoggerOutput::Stdout, log::LogLevelFilter::Info);
+//!
+//!     s_trace!(json_object! {
+//!         "trace_key1" => 1,
+//!         "trace_key2" => "value2"
+//!     });
+//!     s_debug!(json_object! {
+//!         "debug_key1" => 1,
+//!         "debug_key2" => "value2"
+//!     });
+//!     s_info!(json_object! {
+//!         "info_key1" => 1,
+//!         "info_key2" => "value2"
+//!     });
+//!     s_warn!(json_object! {
+//!         "warn_key1" => 1,
+//!         "warn_key2" => "value2"
+//!     });
+//!     s_error!(json_object! {
+//!         "error_key1" => 1,
+//!         "error_key2" => "value2"
+//!     });
+//!
+//!     trace!("{:?}",
+//!            json_object! {
+//!         "trace_key1" => 1,
+//!         "trace_key2" => "value2"
+//!     });
+//!     error!("{}",
+//!            json_format! {
+//!         "error_key1" => 1,
+//!         "error_key2" => q("value2"),
+//!         "error_key3" => json_format![q("value3"),4]
+//!     });
+//!
+//!     // Output:
+//!     // {"level":"INFO","meta":{"target":"json:basic","location":{"module_path":"basic","file":"examples\\basic.rs","line":20}},"value":{"info_key1":1,"info_key2":"value2"}}
+//!     // {"level":"WARN","meta":{"target":"json:basic","location":{"module_path":"basic","file":"examples\\basic.rs","line":24}},"value":{"warn_key1":1,"warn_key2":"value2"}}
+//!     // {"level":"ERROR","meta":{"target":"json:basic","location":{"module_path":"basic","file":"examples\\basic.rs","line":28}},"value":{"error_key1":1,"error_key2":"value2"}}
+//!     // {"level":"ERROR","meta":{"target":"basic","location":{"module_path":"basic","file":"examples\\basic.rs","line":38}},"value":"{\"error_key1\":1,\"error_key2\":\"value2\",\"error_key3\":[\"value3\",4]}"}
+//! }
+//! ```
+//!
+//! # More complicated JSON
+//!
+//! ```
+//! #[macro_use]
+//! extern crate log;
+//! #[macro_use]
+//! extern crate s_structured_log;
+//! extern crate serde_json;
+//!
+//! use s_structured_log::{JsonLogger, LoggerOutput, q};
+//!
+//! fn main() {
+//!     JsonLogger::init(LoggerOutput::Stderr, log::LogLevelFilter::Info);
+//!
+//!     // use json_object!
+//!     s_info!(json_object! {
+//!         "Fruits" => json_object! {
+//!             "on_the_table" => json_object! {
+//!                 "Apple" => 1,
+//!                 "Orange" => "two",
+//!                 "Grape" => 1.2
+//!             },
+//!             "in_the_basket" => ["Banana", "Strawberry"]
+//!         },
+//!         "Pets" => [
+//!             json_object! {
+//!                 "name" => "Tama",
+//!                 "kind" => "cat",
+//!                 "age" => 3
+//!             },
+//!             json_object! {
+//!                 "name" => "Pochi",
+//!                 "kind" => "dog",
+//!                 "age" => 5
+//!             }
+//!         ]
+//!     });
+//!
+//!     // use json_format! and target with `json:` prefix.
+//!     info!(target: &format!("json:{}", module_path!()),
+//!           "{}",
+//!           json_format! {
+//!         "Fruits" => json_format! {
+//!             "on_the_table" => json_format! {
+//!                 "Apple" => 1,
+//!                 "Orange" => q("two"),
+//!                 "Grape" => 1.2
+//!             },
+//!             "in_the_basket" => json_format![q("Banana"), q("Strawberry")]
+//!         },
+//!         "Pets" => json_format![
+//!             json_format! {
+//!                 "name" => q("Tama"),
+//!                 "kind" => q("cat"),
+//!                 "age" => 3
+//!             },
+//!             json_format! {
+//!                 "name" => q("Pochi"),
+//!                 "kind" => q("dog"),
+//!                 "age" => 5
+//!             }
+//!         ]
+//!     });
+//!
+//!     // use json_format! and default target.
+//!     info!("{}",
+//!           json_format! {
+//!         "Fruits" => json_format! {
+//!             "on_the_table" => json_format! {
+//!                 "Apple" => 1,
+//!                 "Orange" => 2,
+//!                 "Grape" => 1.2
+//!             },
+//!             "in_the_basket" => json_format![q("Banana"), q("Strawberry")]
+//!         },
+//!         "Pets" => json_format![
+//!             json_format! {
+//!                 "name" => q("Tama"),
+//!                 "kind" => q("cat")
+//!             },
+//!             json_format! {
+//!                 "name" => q("Pochi"),
+//!                 "kind" => q("dog")
+//!             }
+//!         ]
+//!     });
+//!
+//!     // Output:
+//!     // {"level":"INFO","meta":{"target":"json:complicated_json","location":{"module_path":"complicated_json","file":"examples\\complicated_json.rs","line":13}},"value":{"Fruits":{"in_the_basket":["Banana","Strawberry"],"on_the_table":{"Apple":1,"Grape":1.2,"Orange":"two"}},"Pets":[{"age":3,"kind":"cat","name":"Tama"},{"age":5,"kind":"dog","name":"Pochi"}]}}
+//!     // {"level":"INFO","meta":{"target":"json:complicated_json","location":{"module_path":"complicated_json","file":"examples\\complicated_json.rs","line":37}},"value":{"Fruits":{"on_the_table":{"Apple":1,"Orange":"two","Grape":1.2},"in_the_basket":["Banana","Strawberry"]},"Pets":[{"name":"Tama","kind":"cat","age":3},{"name":"Pochi","kind":"dog","age":5}]}}
+//!     // {"level":"INFO","meta":{"target":"complicated_json","location":{"module_path":"complicated_json","file":"examples\\complicated_json.rs","line":63}},"value":"{\"Fruits\":{\"on_the_table\":{\"Apple\":1,\"Orange\":2,\"Grape\":1.2},\"in_the_basket\":[\"Banana\",\"Strawberry\"]},\"Pets\":[{\"name\":\"Tama\",\"kind\":\"cat\"},{\"name\":\"Pochi\",\"kind\":\"dog\"}]}"}
+//!
+//! }
+//! ```
+//!
+//! The `json_object!` macro make `serde_json::Map` object.
+//! Values are required `serde::Serialize` implement.
+//!
+//! The `json_format!` macro make JSON text directly.
+//! Values are required `std::fmt::Display` implement.
+//! All Text values are required to add double quote manually
+//! because `json_format` don't add double quote to values automatically.
+//!
+//! `json:` prefix is a tag for indicate to JsonLogger that input text is JSON.
+//!
+
 #[macro_use]
 extern crate log;
 extern crate serde;
@@ -50,13 +225,21 @@ macro_rules! json_format {
     }
 }
 
-/// Make a quoted string for JSON.
+/// Make a quoted and escaped string for JSON.
 ///
 /// ```
 /// use s_structured_log::q;
 ///
 /// let quoted = q("abc");
 /// assert_eq!(quoted, "\"abc\"");
+/// ```
+///
+/// ```
+/// use s_structured_log::q;
+///
+/// let x = "ab\ncdef\x02\x03猫\"bbb🐈";
+/// let expected = r#""ab\ncdef\u0002\u0003猫\"bbb🐈""#;
+/// assert_eq!(q(x), expected.to_owned());
 /// ```
 pub fn q<T: Display + ?Sized>(x: &T) -> String {
     format!("\"{}\"", escape_str(&x.to_string()))
@@ -290,9 +473,6 @@ impl log::Log for JsonLogger {
         };
     }
 }
-
-#[cfg(feature = "documentation")]
-pub mod doc;
 
 #[cfg(test)]
 mod tests {
