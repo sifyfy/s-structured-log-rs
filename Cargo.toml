@@ -2,8 +2,11 @@
 name = "s-structured-log"
 version = "0.0.0"
 authors = ["siphilia <siphilia.rn@gmail.com>"]
-license = "MIT"
+license = "Apache-2.0"
 description = "Logging with structured data like json."
+readme = "README.md"
+documentation = "http://siphilia.github.io/s-structured-log/doc/s-structured-log"
+repository = "http://github.com/siphilia/s-structured-log"
 
 [features]
 default = []
