@@ -4,6 +4,10 @@ s-structured-log is a JSON logging library for Rust.
 
 This library consists of two parts, the [log](https://crates.io/crates/log) frontend wapper macros (`s_info!`, `s_warn!`, etc) and the `JsonLogger` that is implemented the `Log` trait.
 
+## Document
+
+* [s-structured-log](http://siphilia.github.io/s-structured-log-rs/doc/s_structured_log)
+
 ## Basic usage
 
 ```toml
