@@ -13,5 +13,5 @@ default = []
 
 [dependencies]
 log = "0.3.6"
-serde = "0.7.11"
-serde_json = "0.7.3"
+serde = "0.8.0"
+serde_json = "0.8.0"
