@@ -1,5 +1,5 @@
 (function() {var implementors = {};
-implementors['s_structured_log'] = [];implementors['s_structured_log'] = [];implementors['s_structured_log'] = [];implementors['s_structured_log'] = [];implementors['s_structured_log'] = [];implementors['s_structured_log'] = [];implementors['s_structured_log'] = [];implementors['s_structured_log'] = [];
+implementors["s_structured_log"] = [];
 
             if (window.register_implementors) {
                 window.register_implementors(implementors);

@@ -47,11 +47,12 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-83' class='srclink' href='../src/s_structured_log/src/lib.rs.html#406-409' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-81' class='srclink' href='../src/s_structured_log/src/lib.rs.html#406-409' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct JsonLogger {
     // some fields omitted
 }</pre><div class='docblock'><p>This logger is a implementation for <code>log::Log</code> trait.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../s_structured_log/struct.JsonLogger.html' title='s_structured_log::JsonLogger'>JsonLogger</a></code></h3><div class='impl-items'><h4 id='method.init' class='method'><code>fn <a href='#method.init' class='fnname'>init</a>(output: <a class='enum' href='../s_structured_log/enum.LoggerOutput.html' title='s_structured_log::LoggerOutput'>LoggerOutput</a>, filter: <a class='enum' href='../log/enum.LogLevelFilter.html' title='log::LogLevelFilter'>LogLevelFilter</a>)</code></h4>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='struct' href='../s_structured_log/struct.JsonLogger.html' title='s_structured_log::JsonLogger'>JsonLogger</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-84' class='srclink' href='../src/s_structured_log/src/lib.rs.html#411-441' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.init' class='method'><code>fn <a href='#method.init' class='fnname'>init</a>(output: <a class='enum' href='../s_structured_log/enum.LoggerOutput.html' title='s_structured_log::LoggerOutput'>LoggerOutput</a>, filter: <a class='enum' href='../log/enum.LogLevelFilter.html' title='log::LogLevelFilter'>LogLevelFilter</a>)</code></h4>
 <div class='docblock'>
 <pre class='rust rust-example-rendered'>
 <span class='attribute'>#[<span class='ident'>macro_use</span>]</span>
@@ -70,9 +71,12 @@
         <span class='string'>&quot;key&quot;</span> <span class='op'>=&gt;</span> <span class='string'>&quot;value&quot;</span>
     });
 }</pre>
-</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='../log/trait.Log.html' title='log::Log'>Log</a> for <a class='struct' href='../s_structured_log/struct.JsonLogger.html' title='s_structured_log::JsonLogger'>JsonLogger</a></code></h3><div class='impl-items'><h4 id='method.enabled' class='method'><code>fn <a href='../log/trait.Log.html#tymethod.enabled' class='fnname'>enabled</a>(&amp;self, metadata: &amp;<a class='struct' href='../log/struct.LogMetadata.html' title='log::LogMetadata'>LogMetadata</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
-<h4 id='method.log' class='method'><code>fn <a href='../log/trait.Log.html#tymethod.log' class='fnname'>log</a>(&amp;self, record: &amp;<a class='struct' href='../log/struct.LogRecord.html' title='log::LogRecord'>LogRecord</a>)</code></h4>
-</div></section>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='../log/trait.Log.html' title='log::Log'>Log</a> for <a class='struct' href='../s_structured_log/struct.JsonLogger.html' title='s_structured_log::JsonLogger'>JsonLogger</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-91' class='srclink' href='../src/s_structured_log/src/lib.rs.html#443-475' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.enabled' class='method'><code>fn <a href='../log/trait.Log.html#tymethod.enabled' class='fnname'>enabled</a>(&amp;self, metadata: &amp;<a class='struct' href='../log/struct.LogMetadata.html' title='log::LogMetadata'>LogMetadata</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>Determines if a log message with the specified metadata would be logged. <a href="../log/trait.Log.html#tymethod.enabled">Read more</a></p>
+</div><h4 id='method.log' class='method'><code>fn <a href='../log/trait.Log.html#tymethod.log' class='fnname'>log</a>(&amp;self, record: &amp;<a class='struct' href='../log/struct.LogRecord.html' title='log::LogRecord'>LogRecord</a>)</code></h4>
+<div class='docblock'><p>Logs the <code>LogRecord</code>. <a href="../log/trait.Log.html#tymethod.log">Read more</a></p>
+</div></div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -95,6 +99,8 @@
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 
